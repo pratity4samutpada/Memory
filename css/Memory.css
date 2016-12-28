@@ -1,0 +1,27 @@
+#cardHolder .img-responsive.cardBack.gameCard{
+    height:100%;
+    width:100%;
+    overflow: hidden;
+    padding:0;
+    }
+
+.answered{
+    opacity: 0;
+}
+
+#cardHolder .gameCardDiv{
+    padding:0;
+    overflow: hidden;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+
+#cardHolder .row{
+    overflow: hidden;
+    }
+
+#cardHolder .img-responsive.cardBack.clicked{
+
+}
+
