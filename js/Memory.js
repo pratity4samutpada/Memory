@@ -1,5 +1,3 @@
-
-
 var Memory = function (level) {
     this.theme = [["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"],
         ["7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg", "12.jpg"]];
@@ -7,9 +5,8 @@ var Memory = function (level) {
     this.gameArray = [];
     this.counter = 0;
     this.endAt = this.currentTheme.length;
-    this.wrong = 0;
-    this.clickedOn = 0;
-    this.gameOver = false;
+    this.clickedOn1 = false;
+    this.clickedOn2 = false;
     this.init = function () {
         this.randomize(this.currentTheme);
         this.makeGameElements();
@@ -35,6 +32,7 @@ Memory.prototype = {
     },
 
     makeGameElements: function () {
+        var self=this;
         var memoryContainerMain = mkBsElement("div", "#memoryContainerMain");
         document.body.appendChild(memoryContainerMain);
         var navbar = mkBsElement("nav", "navbar navbar-inverse");
@@ -55,18 +53,18 @@ Memory.prototype = {
         var row = mkBsElement("div", "row row-centered");
         cardHolder.appendChild(row);
         for (var j = 1; j <= (this.gameArray.length); j++) {
-            var cardCol = mkBsElement("div", "col-xs-4 col-md-3 col-centered gameCardDiv");
+            var cardCol = mkBsElement("div", "col-xs-3 col-centered gameCardDiv");
             row.appendChild(cardCol);
-            var cardBack = mkBsElement("img", "img-responsive gameCard cardBack");
-            cardBack.src = "images/texture.jpg";
-            cardBack.addEventListener("click", this.memoryGame.bind(this));
-            cardCol.appendChild(cardBack);
+            var card = mkBsElement("div", "gameCard");
+            card.style.backgroundImage = "url(images/texture.jpg)";
+            card.addEventListener("click",this.changeImg.bind(this));
+            // card.addEventListener("click", this.memoryGame.bind(this));
+            cardCol.appendChild(card);
         }
-        var divs = document.querySelectorAll(".gameCardDiv");
         var cards = document.querySelectorAll(".gameCard");
         for (var i = 0; i < cards.length; i++) {
             cards[i].value = this.gameArray[i].substring(0, this.gameArray[i].indexOf("."));
-            divs[i].style.backgroundImage = "url(images/" + this.gameArray[i] + ")";
+
         }
     },
 
@@ -75,31 +73,33 @@ Memory.prototype = {
     //"conceals" the cards. All cards come with this class "concealed", clicking removes the .concealed class. (background image?)
 
     memoryGame: function (e) {
-        var self = this;
         if (document.querySelectorAll(".clicked").length > 1) {
             return;
         }
         var clicked = e.target;
         clicked.classList.add("clicked");
-        clicked.style.visibility="hidden";
+        clicked.style.visibility = "hidden";
 
         var array = document.querySelectorAll(".clicked");
 
         var clickedTimer = setTimeout(function () {
             for (var i = 0; i < array.length; i++) {
                 array[i].classList.remove("clicked");
-                array[i].style.visibility="visible";
+                array[i].style.visibility = "visible";
             }
         }, 1500);
 
-        setTimeout(function(){self.clickedOn = 0;},2000);
+        setTimeout(function () {
+            self.clickedOn = 0;
+        }, 2000);
 
         if (e.target["value"] === this.clickedOn) {
             this.counter++;
             for (var i = 0; i < array.length; i++) {
                 array[i].classList.add("answered");
                 array[i].classList.remove("clicked");
-            }if(this.counter === this.endAt)this.gameOver=true;
+            }
+            if (this.counter === this.endAt)this.gameOver = true;
             clearInterval(clickedTimer);
             this.clickedOn = 0;
         } else {
@@ -111,6 +111,10 @@ Memory.prototype = {
         //and then the cards are concealed again after that time. When the user gets a successful match, the cards remain displayed
         //When the second click happens, the event listeners are removed for the duration of the timer and replaced once again.
         //The counter is added to on each match. Once the counter === endAt, the game is over.
+    },
+    changeImg: function(e){
+        var clicked = e.target;
+        clicked.style.backgroundImage = "url(images/" + parseInt(clicked["value"]) + ".jpg)";
     }
 };
 
