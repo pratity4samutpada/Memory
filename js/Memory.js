@@ -119,12 +119,13 @@ Memory.prototype = {
                 for (var i = 0; i < allClicked.length; i++) {
                     allClicked[i].style.backgroundImage = "url(images/texture2.jpg)";
                     allClicked[i].classList.remove("clicked");
+                    
 
                 }
                 self.clickedOn2 = false;
 
 
-            }, 2000);
+            }, 1500);
         }
     },
     newMemoryGame: function () {
