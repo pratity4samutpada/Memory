@@ -1,13 +1,14 @@
 var Memory = function (level) {
+    this.difficulty = level || 0;
     this.theme = [["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"],
-        ["7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg", "12.jpg"]];
-    this.currentTheme = [].concat.apply([], this.theme.slice(0, level + 1));
+        ["7.jpg", "8.jpg"], ["9.jpg", "10.jpg", "11.jpg", "12.jpg"]];
+    this.difficulties = ["Easy", "Medium", "Hard"];
+    this.currentTheme = [].concat.apply([], this.theme.slice(0, this.difficulty + 1));
     this.gameArray = [];
     this.counter = 0;
     this.endAt = this.currentTheme.length;
-    this.clickedOn1 = false;
     this.clickedOn2 = false;
-    this.init = function () {
+    this.start = function () {
         this.randomize(this.currentTheme);
         this.makeGameElements();
     }
@@ -32,98 +33,113 @@ Memory.prototype = {
     },
 
     makeGameElements: function () {
-        var self=this;
-        var memoryContainerMain = mkBsElement("div", "#memoryContainerMain");
+        
+        //Make overlay for game over.
+        var gameOver = QuickDOM.mkBsElement("div","#gameOver");
+        document.body.appendChild(gameOver);
+        var gameOverDiv = QuickDOM.mkBsElement("div","#gameOverDiv");
+        gameOver.appendChild(gameOverDiv);
+        var restart = QuickDOM.mkBsElement("button","btn btn-success");
+        gameOverDiv.appendChild(restart);
+        restart.innerHTML="New Game";
+        restart.addEventListener("click", this.newMemoryGame);
+        QuickDOM.mkRadio(gameOverDiv, this.theme.length, this.difficulties);
+        
+        //Make main container and navbar.
+        var memoryContainerMain = QuickDOM.mkBsElement("div", "#memoryContainerMain");
         document.body.appendChild(memoryContainerMain);
-        var navbar = mkBsElement("nav", "navbar navbar-inverse");
+        var navbar = QuickDOM.mkBsElement("nav", "navbar navbar-inverse");
         memoryContainerMain.appendChild(navbar);
-        var container = mkBsElement("div", "container-fluid");
+        var container = QuickDOM.mkBsElement("div", "container-fluid");
         navbar.appendChild(container);
-        var header = mkBsElement("div", "navbar-header");
+        var header = QuickDOM.mkBsElement("div", "navbar-header");
         container.appendChild(header);
-        var gameName = mkBsElement("div", "navbar-brand");
+        var gameName = QuickDOM.mkBsElement("div", "navbar-brand");
         header.appendChild(gameName);
         gameName.innerHTML = "Memory: The Game";
-        var button = mkBsElement("button", "btn btn-success navbar-btn");
+        var button = QuickDOM.mkBsElement("button", "btn btn-success navbar-btn");
         container.appendChild(button);
         button.innerHTML = "New Game";
-        button.addEventListener("click", newMemoryGame);
-        var cardHolder = mkBsElement("container", "#cardHolder");
+        button.addEventListener("click", this.newMemoryGame);
+        QuickDOM.mkRadio(container, this.theme.length, this.difficulties);
+        
+        //Make board and cards.
+        var cardHolder = QuickDOM.mkBsElement("container", "#cardHolder");
         memoryContainerMain.appendChild(cardHolder);
-        var row = mkBsElement("div", "row row-centered");
+        var row = QuickDOM.mkBsElement("div", "row row-centered");
         cardHolder.appendChild(row);
         for (var j = 1; j <= (this.gameArray.length); j++) {
-            var cardCol = mkBsElement("div", "col-xs-3 col-centered gameCardDiv");
+            var cardCol = QuickDOM.mkBsElement("div", "col-xs-3 col-centered gameCardDiv");
             row.appendChild(cardCol);
-            var card = mkBsElement("div", "gameCard");
-            card.style.backgroundImage = "url(images/texture.jpg)";
-            card.addEventListener("click",this.changeImg.bind(this));
-            // card.addEventListener("click", this.memoryGame.bind(this));
+            var card = QuickDOM.mkBsElement("div", "gameCard");
+            card.style.backgroundImage = "url(images/texture2.jpg)";
+            card.addEventListener("click", this.memoryGame.bind(this));
+            card.addEventListener("click", this.changeImg.bind(this));
             cardCol.appendChild(card);
         }
         var cards = document.querySelectorAll(".gameCard");
-        for (var i = 0; i < cards.length; i++) {
+        for(var i = 0; i < cards.length; i++){
             cards[i].value = this.gameArray[i].substring(0, this.gameArray[i].indexOf("."));
-
         }
+
     },
 
-    //creates a new display of divs with all of the images from the array in the randomized order.
-    //assigns the event listeners connected to other functions in this prototype.
-    //"conceals" the cards. All cards come with this class "concealed", clicking removes the .concealed class. (background image?)
 
     memoryGame: function (e) {
-        if (document.querySelectorAll(".clicked").length > 1) {
+        if (this.clickedOn2) {
+            return;
+        }
+        var target = e.target;
+        target.classList.add("clicked");
+        var clicked = document.querySelectorAll(".clicked");
+        if (clicked.length > 1 && clicked[0]["value"] == clicked[1]["value"]) {
+            for (var i = 0; i < clicked.length; i++) {
+                clicked[i].classList.add("answered");
+                clicked[i].classList.remove("clicked");
+
+            }
+            this.counter++;
+            this.counter === this.endAt ? QuickDOM.gameOverToggle() : this.clickedOn2 = false;
+
+        }
+
+
+    },
+    changeImg: function (e) {
+        var self = this;
+        if (this.clickedOn2) {
             return;
         }
         var clicked = e.target;
-        clicked.classList.add("clicked");
-        clicked.style.visibility = "hidden";
-
-        var array = document.querySelectorAll(".clicked");
-
-        var clickedTimer = setTimeout(function () {
-            for (var i = 0; i < array.length; i++) {
-                array[i].classList.remove("clicked");
-                array[i].style.visibility = "visible";
-            }
-        }, 1500);
-
-        setTimeout(function () {
-            self.clickedOn = 0;
-        }, 2000);
-
-        if (e.target["value"] === this.clickedOn) {
-            this.counter++;
-            for (var i = 0; i < array.length; i++) {
-                array[i].classList.add("answered");
-                array[i].classList.remove("clicked");
-            }
-            if (this.counter === this.endAt)this.gameOver = true;
-            clearInterval(clickedTimer);
-            this.clickedOn = 0;
-        } else {
-            this.clickedOn = e.target["value"];
-        }
-
-        //Function to be associated with event listeners on all cards. On click of first card, the card clicked is displayed
-        //for an indefinite period. When the second card is clicked, if the cards did not match, a timer is set for two seconds
-        //and then the cards are concealed again after that time. When the user gets a successful match, the cards remain displayed
-        //When the second click happens, the event listeners are removed for the duration of the timer and replaced once again.
-        //The counter is added to on each match. Once the counter === endAt, the game is over.
-    },
-    changeImg: function(e){
-        var clicked = e.target;
         clicked.style.backgroundImage = "url(images/" + parseInt(clicked["value"]) + ".jpg)";
+        var allClicked = document.querySelectorAll(".clicked");
+        if (allClicked.length > 1 && !(clicked.classList.contains("answered"))) {
+            this.clickedOn2 = true;
+            setTimeout(function () {
+                for (var i = 0; i < allClicked.length; i++) {
+                    allClicked[i].style.backgroundImage = "url(images/texture2.jpg)";
+                    allClicked[i].classList.remove("clicked");
+
+                }
+                self.clickedOn2 = false;
+
+
+            }, 2000);
+        }
+    },
+    newMemoryGame: function () {
+        var x = parseInt(document.querySelector('input[name="difficulty"]:checked').value);
+        var gameOver = document.getElementById("gameOver");
+        var oldGame = document.getElementById("memoryContainerMain");
+        document.body.removeChild(gameOver);
+        document.body.removeChild(oldGame);
+        var newGame = new Memory(x);
+        newGame.start();
     }
 };
 
-var temporary = new Memory(0);
-temporary.init();
 
-function newMemoryGame() {
-    var oldGame = document.getElementById("memoryContainerMain");
-    document.body.removeChild(oldGame);
-    var newGame = new Memory(0);
-    newGame.init();
-}
+var temporary = new Memory();
+temporary.start();
+
+
