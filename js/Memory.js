@@ -8,9 +8,8 @@ var Memory = function (level) {
     this.counter = 0;
     this.endAt = this.currentTheme.length;
     this.clickedOn2 = false;
-    this.start = function () {
-        this.randomize(this.currentTheme);
-        this.makeGameElements();
+    this.init = function () {
+        this.makeNavBar();
     }
 };
 
@@ -32,24 +31,17 @@ Memory.prototype = {
 
     },
 
-    makeGameElements: function () {
-        
-        //Make overlay for game over.
-        var gameOver = QuickDOM.mkBsElement("div","#gameOver");
-        document.body.appendChild(gameOver);
-        var gameOverDiv = QuickDOM.mkBsElement("div","#gameOverDiv");
-        gameOver.appendChild(gameOverDiv);
-        var restart = QuickDOM.mkBsElement("button","btn btn-success");
-        gameOverDiv.appendChild(restart);
-        restart.innerHTML="New Game";
-        restart.addEventListener("click", this.newMemoryGame);
-        QuickDOM.mkRadio(gameOverDiv, this.theme.length, this.difficulties);
-        
-        //Make main container and navbar.
-        var memoryContainerMain = QuickDOM.mkBsElement("div", "#memoryContainerMain");
-        document.body.appendChild(memoryContainerMain);
+    start: function () {
+        this.randomize(this.currentTheme);
+        this.makeGameElements();
+
+
+    },
+
+    makeNavBar: function () {//Make navbar.
+        var navBarMain = document.getElementById("navbar");
         var navbar = QuickDOM.mkBsElement("nav", "navbar navbar-inverse");
-        memoryContainerMain.appendChild(navbar);
+        navBarMain.appendChild(navbar);
         var container = QuickDOM.mkBsElement("div", "container-fluid");
         navbar.appendChild(container);
         var header = QuickDOM.mkBsElement("div", "navbar-header");
@@ -62,14 +54,30 @@ Memory.prototype = {
         button.innerHTML = "New Game";
         button.addEventListener("click", this.newMemoryGame);
         QuickDOM.mkRadio(container, this.theme.length, this.difficulties);
-        
-        //Make board and cards.
+    },
+
+    makeGameElements: function () {
+        //Make overlay for game over.
+        var gameOver = document.getElementById("gameOver");
+        var gameOverDiv = QuickDOM.mkBsElement("div", "#gameOverDiv");
+        gameOver.appendChild(gameOverDiv);
+        var restart = QuickDOM.mkBsElement("button", "btn btn-success");
+        gameOverDiv.appendChild(restart);
+        restart.innerHTML = "New Game";
+        restart.addEventListener("click", this.newMemoryGame);
+        QuickDOM.mkRadio(gameOverDiv, this.theme.length, this.difficulties);
+
+
         var cardHolder = QuickDOM.mkBsElement("container", "#cardHolder");
         memoryContainerMain.appendChild(cardHolder);
         var row = QuickDOM.mkBsElement("div", "row row-centered");
         cardHolder.appendChild(row);
         for (var j = 1; j <= (this.gameArray.length); j++) {
-            var cardCol = QuickDOM.mkBsElement("div", "col-xs-3 col-centered gameCardDiv");
+            if(this.difficulty>1){
+                var cardCol = QuickDOM.mkBsElement("div", "col-xs-2 col-centered gameCardDiv");
+            }else{
+                var cardCol = QuickDOM.mkBsElement("div", "col-xs-3 col-centered gameCardDiv");
+            }
             row.appendChild(cardCol);
             var card = QuickDOM.mkBsElement("div", "gameCard");
             card.style.backgroundImage = "url(images/texture2.jpg)";
@@ -78,7 +86,7 @@ Memory.prototype = {
             cardCol.appendChild(card);
         }
         var cards = document.querySelectorAll(".gameCard");
-        for(var i = 0; i < cards.length; i++){
+        for (var i = 0; i < cards.length; i++) {
             cards[i].value = this.gameArray[i].substring(0, this.gameArray[i].indexOf("."));
         }
 
@@ -119,7 +127,6 @@ Memory.prototype = {
                 for (var i = 0; i < allClicked.length; i++) {
                     allClicked[i].style.backgroundImage = "url(images/texture2.jpg)";
                     allClicked[i].classList.remove("clicked");
-                    
 
                 }
                 self.clickedOn2 = false;
@@ -129,18 +136,23 @@ Memory.prototype = {
         }
     },
     newMemoryGame: function () {
-        var x = parseInt(document.querySelector('input[name="difficulty"]:checked').value);
+        var flipped = document.querySelectorAll(".answered");
         var gameOver = document.getElementById("gameOver");
+        if (flipped.length===this.endAt || gameOver.classList.contains("onScreen") ){
+            QuickDOM.gameOverToggle();
+        }
+        var x = parseInt(document.querySelector('input[name="difficulty"]:checked').value);
         var oldGame = document.getElementById("memoryContainerMain");
-        document.body.removeChild(gameOver);
-        document.body.removeChild(oldGame);
+        oldGame.innerHTML="";
         var newGame = new Memory(x);
         newGame.start();
     }
+
+
 };
 
 
 var temporary = new Memory();
-temporary.start();
+temporary.init();
 
 
